@@ -28,6 +28,10 @@
     "url": "https://github.com/sparanoid/lightense-images/issues"
   },
   "homepage": "http://sparanoid.com/work/lightense-images/",
+  "browserslist": [
+    "not dead",
+    "since 2020"
+  ],
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "eslint": "^10.0.2",

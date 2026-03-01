@@ -1,3 +1,5 @@
+import lightenseCss from './lightense.css?inline';
+
 const Lightense = () => {
   // default options
   const defaults = {
@@ -64,14 +66,18 @@ const Lightense = () => {
   }
 
   function track(element) {
-    if (!element || !element.src || element.classList.contains('lightense-target')) {
+    if (
+      !element ||
+      !element.src ||
+      element.classList.contains('lightense-target')
+    ) {
       return;
     }
 
     element.classList.add('lightense-target');
     element.addEventListener(
       'click',
-      function(event) {
+      function (event) {
         if (config.keyboard) {
           // If Command (macOS) or Ctrl (Windows) key pressed, stop processing
           // and open the image in a new tab
@@ -110,109 +116,9 @@ const Lightense = () => {
   }
 
   function createDefaultCss() {
-    const css = `
-:root {
-  --lightense-z-index: ${config.zIndex - 1};
-  --lightense-backdrop: ${config.background};
-  --lightense-backdrop-filter: ${config.backgroundFilter};
-  --lightense-duration: ${config.time}ms;
-  --lightense-timing-func: ${config.cubicBezier};
-}
-
-.lightense-backdrop {
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  z-index: calc(var(--lightense-z-index) - 1);
-  padding: 0;
-  margin: 0;
-  transition: opacity var(--lightense-duration) ease;
-  cursor: zoom-out;
-  opacity: 0;
-  background-color: var(--lightense-backdrop);
-  visibility: hidden;
-}
-
-@supports (-webkit-backdrop-filter: blur(30px)) {
-  .lightense-backdrop {
-    background-color: var(--lightense-backdrop);
-    -webkit-backdrop-filter: var(--lightense-backdrop-filter);
-  }
-}
-
-@supports (backdrop-filter: blur(30px)) {
-  .lightense-backdrop {
-    background-color: var(--lightense-backdrop);
-    backdrop-filter: var(--lightense-backdrop-filter);
-  }
-}
-
-.lightense-wrap {
-  position: relative;
-  transition: transform var(--lightense-duration) var(--lightense-timing-func),
-    opacity var(--lightense-duration) ease;
-  z-index: var(--lightense-z-index);
-  pointer-events: none;
-}
-
-.lightense-target {
-  cursor: zoom-in;
-  transition: transform var(--lightense-duration) var(--lightense-timing-func);
-  pointer-events: auto;
-}
-
-.lightense-open {
-  cursor: zoom-out;
-}
-
-.lightense-transitioning {
-  pointer-events: none;
-}
-
-.lightense-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 999px;
-  padding: 0;
-  margin: 0;
-  font-size: 24px;
-  line-height: 44px;
-  text-align: center;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.24);
-  cursor: pointer;
-  user-select: none;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--lightense-duration) ease,
-    background var(--lightense-duration) ease;
-}
-
-.lightense-nav:hover {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.lightense-nav-prev {
-  left: 20px;
-}
-
-.lightense-nav-next {
-  right: 20px;
-}
-
-.lightense-nav-visible {
-  opacity: 1;
-  pointer-events: auto;
-}`;
-    insertCss('lightense-images-css', css);
+    const css = `:root{--lightense-z-index:${config.zIndex - 1};--lightense-backdrop:${config.background};--lightense-backdrop-filter:${config.backgroundFilter};--lightense-duration:${config.time}ms;--lightense-timing-func:${config.cubicBezier}}`;
+    insertCss('lightense-images-css-variables', css);
+    insertCss('lightense-images-css-static', lightenseCss);
   }
 
   function createNavigationControl(controlClassName, ariaLabel, direction) {
@@ -230,7 +136,7 @@ const Lightense = () => {
     if (!control.dataset.lightenseNavBound) {
       control.addEventListener(
         'click',
-        function(event) {
+        function (event) {
           event.preventDefault();
           event.stopPropagation();
           showAdjacent(direction);
@@ -273,7 +179,11 @@ const Lightense = () => {
   }
 
   function isLoadedTarget(target) {
-    return Boolean(target && target.src && target.complete && target.naturalWidth && target.naturalHeight);
+    return Boolean(target &&
+      target.src &&
+      target.complete &&
+      target.naturalWidth &&
+      target.naturalHeight);
   }
 
   function isAdjacentTargetAvailable(target) {
@@ -330,7 +240,9 @@ const Lightense = () => {
       return null;
     }
 
-    return getAdjacentGalleryTarget(direction) || getAdjacentSiblingTarget(direction);
+    return (
+      getAdjacentGalleryTarget(direction) || getAdjacentSiblingTarget(direction)
+    );
   }
 
   function updateNavigationControls() {
@@ -346,7 +258,8 @@ const Lightense = () => {
       return;
     }
 
-    const adjacentTarget = direction < 0 ? config.prevTarget : config.nextTarget;
+    const adjacentTarget =
+      direction < 0 ? config.prevTarget : config.nextTarget;
 
     if (!adjacentTarget) {
       return;
@@ -442,9 +355,12 @@ const Lightense = () => {
 
     closingTarget.classList.remove('lightense-open');
     closingWrap.style.opacity = '0';
-    closingWrap.style.transform = getTranslate3d(destinationX, closingTranslateY);
+    closingWrap.style.transform = getTranslate3d(
+      destinationX,
+      closingTranslateY
+    );
 
-    setTimeout(function() {
+    setTimeout(function () {
       const previousTargetTransition = closingTarget.style.transition;
       closingTarget.style.transition = 'none';
       closingTarget.style.transform = '';
@@ -488,12 +404,12 @@ const Lightense = () => {
     createTransform(img);
     createViewer({switchDirection: direction});
 
-    once(config.wrap, 'transitionend', function() {
+    once(config.wrap, 'transitionend', function () {
       invokeCustomHook('afterShow');
     });
 
     // Prevent rapid key repeats from causing DOM race conditions.
-    setTimeout(function() {
+    setTimeout(function () {
       config.isTransitioning = false;
     }, config.time);
   }
@@ -516,11 +432,18 @@ const Lightense = () => {
     const naturalHeight = img.height;
 
     // Calc zoom ratio
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
-    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || 0;
+    const scrollTop =
+      window.pageYOffset || document.documentElement.scrollTop || 0;
+    const scrollLeft =
+      window.pageXOffset || document.documentElement.scrollLeft || 0;
     const targetImage = config.target.getBoundingClientRect();
 
-    if (!naturalWidth || !naturalHeight || !targetImage.width || !targetImage.height) {
+    if (
+      !naturalWidth ||
+      !naturalHeight ||
+      !targetImage.width ||
+      !targetImage.height
+    ) {
       config.scaleFactor = 1;
       config.translateX = 0;
       config.translateY = 0;
@@ -528,8 +451,10 @@ const Lightense = () => {
     }
 
     const maxScaleFactor = naturalWidth / targetImage.width;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const viewportWidth =
+      window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight || 0;
     const viewportPadding =
       config.target.getAttribute('data-lightense-padding') ||
       config.target.getAttribute('data-padding') ||
@@ -583,7 +508,8 @@ const Lightense = () => {
       const previousTargetTransition = config.target.style.transition;
       const previousWrapTransition = config.wrap.style.transition;
       const travelX = getSwitchTravelX();
-      const startX = config.translateX + (switchDirection > 0 ? travelX : -travelX);
+      const startX =
+        config.translateX + (switchDirection > 0 ? travelX : -travelX);
 
       config.target.style.transition = 'none';
       config.wrap.style.transition = 'none';
@@ -595,7 +521,7 @@ const Lightense = () => {
       restoreInlineTransitionStyle(config.target, previousTargetTransition);
       restoreInlineTransitionStyle(config.wrap, previousWrapTransition);
 
-      setTimeout(function() {
+      setTimeout(function () {
         config.wrap.style.opacity = '1';
         config.wrap.style.transform = getTranslate3d(
           config.translateX,
@@ -604,11 +530,11 @@ const Lightense = () => {
       }, 20);
     } else {
       // Apply zoom ratio to target image
-      setTimeout(function() {
+      setTimeout(function () {
         config.target.style.transform = `scale(${config.scaleFactor})`;
       }, 20);
 
-      setTimeout(function() {
+      setTimeout(function () {
         config.wrap.style.transform = getTranslate3d(
           config.translateX,
           config.translateY
@@ -632,17 +558,11 @@ const Lightense = () => {
     // Create new config for item-specified styles
     const configComputed = {...config, ...itemOptions};
 
-    const css = `
-    :root {
-      --lightense-z-index: ${configComputed.zIndex - 1};
-      --lightense-backdrop: ${configComputed.background};
-      --lightense-duration: ${configComputed.time}ms;
-      --lightense-timing-func: ${configComputed.cubicBezier};
-    }`;
+    const css = `:root{--lightense-z-index:${configComputed.zIndex - 1};--lightense-backdrop:${configComputed.background};--lightense-duration:${configComputed.time}ms;--lightense-timing-func:${configComputed.cubicBezier}}`;
     insertCss('lightense-images-css-computed', css);
 
     config.container.style.visibility = 'visible';
-    setTimeout(function() {
+    setTimeout(function () {
       config.container.style.opacity = '1';
     }, 20);
 
@@ -673,7 +593,7 @@ const Lightense = () => {
     config.container.style.opacity = '';
 
     // Hide backdrop and remove target element wrapper
-    setTimeout(function() {
+    setTimeout(function () {
       invokeCustomHook('afterHide');
       config.container.style.visibility = '';
       config.container.style.backgroundColor = '';
@@ -721,7 +641,7 @@ const Lightense = () => {
     // Save current window scroll position for later use
     config.scrollY = window.scrollY;
 
-    once(config.target, 'transitionend', function() {
+    once(config.target, 'transitionend', function () {
       invokeCustomHook('afterShow');
     });
 
@@ -756,7 +676,10 @@ const Lightense = () => {
       return;
     }
 
-    if (config.keyboard && (event.key === 'ArrowLeft' || event.keyCode === 37)) {
+    if (
+      config.keyboard &&
+      (event.key === 'ArrowLeft' || event.keyCode === 37)
+    ) {
       showAdjacent(-1);
       return;
     }

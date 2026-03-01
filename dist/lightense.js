@@ -2,6 +2,7 @@
   typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Lightense = factory());
 })(this, (function() {
   "use strict";
+  const lightenseCss = ":root {\n  --lightense-z-index: 999999;\n  --lightense-backdrop: rgba(255, 255, 255, 0.98);\n  --lightense-backdrop-filter: blur(30px);\n  --lightense-duration: 300ms;\n  --lightense-timing-func: cubic-bezier(0.2, 0, 0.1, 1);\n}\n\n.lightense-backdrop {\n  box-sizing: border-box;\n  width: 100%;\n  height: 100%;\n  position: fixed;\n  top: 0;\n  left: 0;\n  overflow: hidden;\n  z-index: calc(var(--lightense-z-index) - 1);\n  padding: 0;\n  margin: 0;\n  transition: opacity var(--lightense-duration) ease;\n  cursor: zoom-out;\n  opacity: 0;\n  background-color: var(--lightense-backdrop);\n  visibility: hidden;\n}\n\n@supports (-webkit-backdrop-filter: blur(30px)) {\n  .lightense-backdrop {\n    background-color: var(--lightense-backdrop);\n    -webkit-backdrop-filter: var(--lightense-backdrop-filter);\n  }\n}\n\n@supports (backdrop-filter: blur(30px)) {\n  .lightense-backdrop {\n    background-color: var(--lightense-backdrop);\n    backdrop-filter: var(--lightense-backdrop-filter);\n  }\n}\n\n.lightense-wrap {\n  position: relative;\n  transition:\n    transform var(--lightense-duration) var(--lightense-timing-func),\n    opacity var(--lightense-duration) ease;\n  z-index: var(--lightense-z-index);\n  pointer-events: none;\n}\n\n.lightense-target {\n  cursor: zoom-in;\n  transition: transform var(--lightense-duration) var(--lightense-timing-func);\n  pointer-events: auto;\n}\n\n.lightense-open {\n  cursor: zoom-out;\n}\n\n.lightense-transitioning {\n  pointer-events: none;\n}\n\n.lightense-nav {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  width: 44px;\n  height: 44px;\n  border: 0;\n  border-radius: 999px;\n  padding: 0;\n  margin: 0;\n  font-size: 24px;\n  line-height: 44px;\n  text-align: center;\n  color: #fff;\n  background: rgba(0, 0, 0, 0.24);\n  cursor: pointer;\n  user-select: none;\n  opacity: 0;\n  pointer-events: none;\n  transition:\n    opacity var(--lightense-duration) ease,\n    background var(--lightense-duration) ease;\n}\n\n.lightense-nav:hover {\n  background: rgba(0, 0, 0, 0.4);\n}\n\n.lightense-nav-prev {\n  left: 20px;\n}\n\n.lightense-nav-next {\n  right: 20px;\n}\n\n.lightense-nav-visible {\n  opacity: 1;\n  pointer-events: auto;\n}\n";
   const Lightense = () => {
     const defaults = {
       time: 300,
@@ -85,109 +86,9 @@
       head.appendChild(styleEl);
     }
     function createDefaultCss() {
-      const css = `
-:root {
-  --lightense-z-index: ${config.zIndex - 1};
-  --lightense-backdrop: ${config.background};
-  --lightense-backdrop-filter: ${config.backgroundFilter};
-  --lightense-duration: ${config.time}ms;
-  --lightense-timing-func: ${config.cubicBezier};
-}
-
-.lightense-backdrop {
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  z-index: calc(var(--lightense-z-index) - 1);
-  padding: 0;
-  margin: 0;
-  transition: opacity var(--lightense-duration) ease;
-  cursor: zoom-out;
-  opacity: 0;
-  background-color: var(--lightense-backdrop);
-  visibility: hidden;
-}
-
-@supports (-webkit-backdrop-filter: blur(30px)) {
-  .lightense-backdrop {
-    background-color: var(--lightense-backdrop);
-    -webkit-backdrop-filter: var(--lightense-backdrop-filter);
-  }
-}
-
-@supports (backdrop-filter: blur(30px)) {
-  .lightense-backdrop {
-    background-color: var(--lightense-backdrop);
-    backdrop-filter: var(--lightense-backdrop-filter);
-  }
-}
-
-.lightense-wrap {
-  position: relative;
-  transition: transform var(--lightense-duration) var(--lightense-timing-func),
-    opacity var(--lightense-duration) ease;
-  z-index: var(--lightense-z-index);
-  pointer-events: none;
-}
-
-.lightense-target {
-  cursor: zoom-in;
-  transition: transform var(--lightense-duration) var(--lightense-timing-func);
-  pointer-events: auto;
-}
-
-.lightense-open {
-  cursor: zoom-out;
-}
-
-.lightense-transitioning {
-  pointer-events: none;
-}
-
-.lightense-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 999px;
-  padding: 0;
-  margin: 0;
-  font-size: 24px;
-  line-height: 44px;
-  text-align: center;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.24);
-  cursor: pointer;
-  user-select: none;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--lightense-duration) ease,
-    background var(--lightense-duration) ease;
-}
-
-.lightense-nav:hover {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.lightense-nav-prev {
-  left: 20px;
-}
-
-.lightense-nav-next {
-  right: 20px;
-}
-
-.lightense-nav-visible {
-  opacity: 1;
-  pointer-events: auto;
-}`;
-      insertCss("lightense-images-css", css);
+      const css = `:root{--lightense-z-index:${config.zIndex - 1};--lightense-backdrop:${config.background};--lightense-backdrop-filter:${config.backgroundFilter};--lightense-duration:${config.time}ms;--lightense-timing-func:${config.cubicBezier}}`;
+      insertCss("lightense-images-css-variables", css);
+      insertCss("lightense-images-css-static", lightenseCss);
     }
     function createNavigationControl(controlClassName, ariaLabel, direction) {
       let control = config.container.querySelector(`.${controlClassName}`);
@@ -354,7 +255,10 @@
       const destinationX = closingTranslateX + (direction > 0 ? -travelX : travelX);
       closingTarget.classList.remove("lightense-open");
       closingWrap.style.opacity = "0";
-      closingWrap.style.transform = getTranslate3d(destinationX, closingTranslateY);
+      closingWrap.style.transform = getTranslate3d(
+        destinationX,
+        closingTranslateY
+      );
       setTimeout(function() {
         const previousTargetTransition = closingTarget.style.transition;
         closingTarget.style.transition = "none";
@@ -485,13 +389,7 @@
         zIndex: config.target.getAttribute("data-lightense-z-index") || config.zIndex
       };
       const configComputed = { ...config, ...itemOptions };
-      const css = `
-    :root {
-      --lightense-z-index: ${configComputed.zIndex - 1};
-      --lightense-backdrop: ${configComputed.background};
-      --lightense-duration: ${configComputed.time}ms;
-      --lightense-timing-func: ${configComputed.cubicBezier};
-    }`;
+      const css = `:root{--lightense-z-index:${configComputed.zIndex - 1};--lightense-backdrop:${configComputed.background};--lightense-duration:${configComputed.time}ms;--lightense-timing-func:${configComputed.cubicBezier}}`;
       insertCss("lightense-images-css-computed", css);
       config.container.style.visibility = "visible";
       setTimeout(function() {
