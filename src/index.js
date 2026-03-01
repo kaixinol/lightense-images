@@ -153,7 +153,8 @@ const Lightense = () => {
 
 .lightense-wrap {
   position: relative;
-  transition: transform var(--lightense-duration) var(--lightense-timing-func);
+  transition: transform var(--lightense-duration) var(--lightense-timing-func),
+    opacity var(--lightense-duration) ease;
   z-index: var(--lightense-z-index);
   pointer-events: none;
 }
@@ -170,8 +171,331 @@ const Lightense = () => {
 
 .lightense-transitioning {
   pointer-events: none;
+}
+
+.lightense-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  margin: 0;
+  font-size: 24px;
+  line-height: 44px;
+  text-align: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.24);
+  cursor: pointer;
+  user-select: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--lightense-duration) ease,
+    background var(--lightense-duration) ease;
+}
+
+.lightense-nav:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.lightense-nav-prev {
+  left: 20px;
+}
+
+.lightense-nav-next {
+  right: 20px;
+}
+
+.lightense-nav-visible {
+  opacity: 1;
+  pointer-events: auto;
 }`;
     insertCss('lightense-images-css', css);
+  }
+
+  function createNavigationControl(controlClassName, ariaLabel, direction) {
+    let control = config.container.querySelector(`.${controlClassName}`);
+
+    if (!control) {
+      control = document.createElement('button');
+      control.className = `lightense-nav ${controlClassName}`;
+      control.type = 'button';
+      control.setAttribute('aria-label', ariaLabel);
+      control.innerText = direction < 0 ? '<' : '>';
+      config.container.appendChild(control);
+    }
+
+    if (!control.dataset.lightenseNavBound) {
+      control.addEventListener(
+        'click',
+        function(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          showAdjacent(direction);
+        },
+        false
+      );
+      control.dataset.lightenseNavBound = 'true';
+    }
+
+    return control;
+  }
+
+  function createNavigationControls() {
+    config.prevControl = createNavigationControl(
+      'lightense-nav-prev',
+      'Previous image',
+      -1
+    );
+    config.nextControl = createNavigationControl(
+      'lightense-nav-next',
+      'Next image',
+      1
+    );
+    hideNavigationControls();
+  }
+
+  function setNavigationControlVisible(control, isVisible) {
+    if (!control) {
+      return;
+    }
+    control.classList.toggle('lightense-nav-visible', isVisible);
+    control.setAttribute('aria-hidden', `${!isVisible}`);
+  }
+
+  function hideNavigationControls() {
+    config.prevTarget = null;
+    config.nextTarget = null;
+    setNavigationControlVisible(config.prevControl, false);
+    setNavigationControlVisible(config.nextControl, false);
+  }
+
+  function isLoadedTarget(target) {
+    return Boolean(target && target.src && target.complete && target.naturalWidth && target.naturalHeight);
+  }
+
+  function isAdjacentTargetAvailable(target) {
+    if (target === config.target) {
+      // Keep active image eligible during switch animations.
+      return isLoadedTarget(target);
+    }
+
+    return isNavigableTarget(target);
+  }
+
+  function getAdjacentGalleryTarget(direction) {
+    const gallery = config.target.closest('.gallery');
+
+    if (!gallery) {
+      return null;
+    }
+
+    const galleryTargets = Array.from(gallery.querySelectorAll('.lightense-target'));
+    const currentIndex = galleryTargets.indexOf(config.target);
+
+    if (currentIndex < 0) {
+      return null;
+    }
+
+    const adjacent = galleryTargets[currentIndex + direction];
+
+    if (!adjacent) {
+      return null;
+    }
+
+    return isAdjacentTargetAvailable(adjacent) ? adjacent : null;
+  }
+
+  function getAdjacentSiblingTarget(direction) {
+    const adjacent =
+      direction < 0
+        ? config.target.previousElementSibling
+        : config.target.nextElementSibling;
+
+    if (
+      !adjacent ||
+      !adjacent.classList ||
+      !adjacent.classList.contains('lightense-target')
+    ) {
+      return null;
+    }
+
+    return isAdjacentTargetAvailable(adjacent) ? adjacent : null;
+  }
+
+  function getAdjacentTarget(direction) {
+    if (!config.target) {
+      return null;
+    }
+
+    return getAdjacentGalleryTarget(direction) || getAdjacentSiblingTarget(direction);
+  }
+
+  function updateNavigationControls() {
+    config.prevTarget = getAdjacentTarget(-1);
+    config.nextTarget = getAdjacentTarget(1);
+
+    setNavigationControlVisible(config.prevControl, Boolean(config.prevTarget));
+    setNavigationControlVisible(config.nextControl, Boolean(config.nextTarget));
+  }
+
+  function showAdjacent(direction) {
+    if (config.isTransitioning) {
+      return;
+    }
+
+    const adjacentTarget = direction < 0 ? config.prevTarget : config.nextTarget;
+
+    if (!adjacentTarget) {
+      return;
+    }
+
+    switchViewer(adjacentTarget, direction);
+  }
+
+  function restoreInlineTransitionStyle(element, transitionValue) {
+    if (transitionValue) {
+      element.style.transition = transitionValue;
+      return;
+    }
+
+    element.style.removeProperty('transition');
+  }
+
+  function forceLayout(element) {
+    return element.offsetWidth;
+  }
+
+  function getViewportWidth() {
+    return window.innerWidth || document.documentElement.clientWidth || 0;
+  }
+
+  function getTranslate3d(x, y) {
+    return `translate3d(${x}px, ${y}px, 0)`;
+  }
+
+  function getSwitchTravelX() {
+    return Math.max(Math.round(getViewportWidth() * 0.75), 280);
+  }
+
+  function isNavigableTarget(target) {
+    if (!target || !target.src || !target.complete) {
+      return false;
+    }
+
+    if (!target.naturalWidth || !target.naturalHeight) {
+      return false;
+    }
+
+    const rect = target.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      return false;
+    }
+
+    let current = target;
+    while (current && current.nodeType === 1) {
+      const style = window.getComputedStyle(current);
+      if (
+        style.display === 'none' ||
+        style.visibility === 'hidden' ||
+        Number(style.opacity) === 0
+      ) {
+        return false;
+      }
+      current = current.parentElement;
+    }
+
+    return true;
+  }
+
+  function getImageClone(target) {
+    // clone the original img element to prevent a network call.
+    const img = target.cloneNode();
+    if (img.id) {
+      // when target had an id, make sure to delete the id of the cloned node
+      // otherwise this may cause weirdness in the client application
+      // when two html elements with the same id exist.
+      img.removeAttribute('id');
+    }
+
+    // set the width and height of img, which is equivalent to initialising a new Image element
+    // and setting its 'src' property.
+    img.width = target.naturalWidth || target.width || target.clientWidth;
+    img.height = target.naturalHeight || target.height || target.clientHeight;
+    return img;
+  }
+
+  function animateCurrentViewerOut(direction) {
+    if (!config.target || !config.wrap) {
+      return;
+    }
+
+    const closingTarget = config.target;
+    const closingWrap = config.wrap;
+    const closingTranslateX = config.translateX;
+    const closingTranslateY = config.translateY;
+    const travelX = getSwitchTravelX();
+    const destinationX =
+      closingTranslateX + (direction > 0 ? -travelX : travelX);
+
+    closingTarget.classList.remove('lightense-open');
+    closingWrap.style.opacity = '0';
+    closingWrap.style.transform = getTranslate3d(destinationX, closingTranslateY);
+
+    setTimeout(function() {
+      const previousTargetTransition = closingTarget.style.transition;
+      closingTarget.style.transition = 'none';
+      closingTarget.style.transform = '';
+
+      if (closingWrap.parentNode) {
+        closingWrap.parentNode.replaceChild(closingTarget, closingWrap);
+      }
+
+      forceLayout(closingTarget);
+      restoreInlineTransitionStyle(closingTarget, previousTargetTransition);
+    }, config.time);
+  }
+
+  function switchViewer(target, direction) {
+    if (!target || !config.target || !config.wrap || config.isTransitioning) {
+      return;
+    }
+
+    if (!isNavigableTarget(target)) {
+      updateNavigationControls();
+      return;
+    }
+
+    config.isTransitioning = true;
+    invokeCustomHook('beforeHide');
+    hideNavigationControls();
+    animateCurrentViewerOut(direction);
+    invokeCustomHook('afterHide');
+
+    config.target = target;
+    config.wrap = null;
+    config.scrollY = window.scrollY;
+
+    invokeCustomHook('beforeShow');
+
+    const img = getImageClone(config.target);
+    if (!img.width || !img.height) {
+      config.isTransitioning = false;
+      return;
+    }
+    createTransform(img);
+    createViewer({switchDirection: direction});
+
+    once(config.wrap, 'transitionend', function() {
+      invokeCustomHook('afterShow');
+    });
+
+    // Prevent rapid key repeats from causing DOM race conditions.
+    setTimeout(function() {
+      config.isTransitioning = false;
+    }, config.time);
   }
 
   function createBackdrop() {
@@ -183,6 +507,7 @@ const Lightense = () => {
     } else {
       config.container = existingBackdrop;
     }
+    createNavigationControls();
   }
 
   function createTransform(img) {
@@ -194,6 +519,14 @@ const Lightense = () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || 0;
     const targetImage = config.target.getBoundingClientRect();
+
+    if (!naturalWidth || !naturalHeight || !targetImage.width || !targetImage.height) {
+      config.scaleFactor = 1;
+      config.translateX = 0;
+      config.translateY = 0;
+      return;
+    }
+
     const maxScaleFactor = naturalWidth / targetImage.width;
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
@@ -235,24 +568,53 @@ const Lightense = () => {
     config.translateY = Math.round(viewportY - imageCenterY);
   }
 
-  function createViewer() {
+  function createViewer({switchDirection = 0} = {}) {
     config.target.classList.add('lightense-open');
 
     // Create wrapper element
     config.wrap = document.createElement('div');
     config.wrap.className = 'lightense-wrap';
 
-    // Apply zoom ratio to target image
-    setTimeout(function() {
-      config.target.style.transform = `scale(${config.scaleFactor})`;
-    }, 20);
-
     // Apply animation to outer wrapper
     config.target.parentNode.insertBefore(config.wrap, config.target);
     config.wrap.appendChild(config.target);
-    setTimeout(function() {
-      config.wrap.style.transform = `translate3d(${config.translateX}px, ${config.translateY}px, 0)`;
-    }, 20);
+
+    if (switchDirection) {
+      const previousTargetTransition = config.target.style.transition;
+      const previousWrapTransition = config.wrap.style.transition;
+      const travelX = getSwitchTravelX();
+      const startX = config.translateX + (switchDirection > 0 ? travelX : -travelX);
+
+      config.target.style.transition = 'none';
+      config.wrap.style.transition = 'none';
+      config.target.style.transform = `scale(${config.scaleFactor})`;
+      config.wrap.style.opacity = '0';
+      config.wrap.style.transform = getTranslate3d(startX, config.translateY);
+      forceLayout(config.wrap);
+
+      restoreInlineTransitionStyle(config.target, previousTargetTransition);
+      restoreInlineTransitionStyle(config.wrap, previousWrapTransition);
+
+      setTimeout(function() {
+        config.wrap.style.opacity = '1';
+        config.wrap.style.transform = getTranslate3d(
+          config.translateX,
+          config.translateY
+        );
+      }, 20);
+    } else {
+      // Apply zoom ratio to target image
+      setTimeout(function() {
+        config.target.style.transform = `scale(${config.scaleFactor})`;
+      }, 20);
+
+      setTimeout(function() {
+        config.wrap.style.transform = getTranslate3d(
+          config.translateX,
+          config.translateY
+        );
+      }, 20);
+    }
 
     // Show backdrop
     const itemOptions = {
@@ -283,18 +645,29 @@ const Lightense = () => {
     setTimeout(function() {
       config.container.style.opacity = '1';
     }, 20);
+
+    updateNavigationControls();
   }
 
   function removeViewer() {
+    if (!config.target || !config.wrap || config.isTransitioning) {
+      return;
+    }
+
+    config.isTransitioning = true;
     invokeCustomHook('beforeHide');
     unbindEvents();
+    hideNavigationControls();
 
-    config.target.classList.remove('lightense-open');
+    const closingTarget = config.target;
+    const closingWrap = config.wrap;
+
+    closingTarget.classList.remove('lightense-open');
 
     // Remove transform styles
-    config.wrap.style.transform = '';
-    config.target.style.transform = '';
-    config.target.classList.add('lightense-transitioning');
+    closingWrap.style.transform = '';
+    closingTarget.style.transform = '';
+    closingTarget.classList.add('lightense-transitioning');
 
     // Fadeout backdrop
     config.container.style.opacity = '';
@@ -304,8 +677,12 @@ const Lightense = () => {
       invokeCustomHook('afterHide');
       config.container.style.visibility = '';
       config.container.style.backgroundColor = '';
-      config.wrap.parentNode.replaceChild(config.target, config.wrap);
-      config.target.classList.remove('lightense-transitioning');
+      if (closingWrap.parentNode) {
+        closingWrap.parentNode.replaceChild(closingTarget, closingWrap);
+      }
+      closingTarget.classList.remove('lightense-transitioning');
+      config.wrap = null;
+      config.isTransitioning = false;
     }, config.time);
   }
 
@@ -335,6 +712,10 @@ const Lightense = () => {
       return removeViewer();
     }
 
+    if (!isNavigableTarget(config.target)) {
+      return;
+    }
+
     invokeCustomHook('beforeShow');
 
     // Save current window scroll position for later use
@@ -344,18 +725,10 @@ const Lightense = () => {
       invokeCustomHook('afterShow');
     });
 
-    // clone the original img element to prevent a network call.
-    const img = config.target.cloneNode();
-    if (img.id) {
-      // when config.target had an id, make sure to delete the id of the cloned node
-      // otherwise this may cause weirdness in the client application
-      // when two html elements with the same id exist.
-      img.removeAttribute('id');
+    const img = getImageClone(config.target);
+    if (!img.width || !img.height) {
+      return;
     }
-    // set the width and height of img, which is equivalent to initialising a new Image element
-    // and setting its 'src' property.
-    img.width = config.target.naturalWidth;
-    img.height = config.target.naturalHeight;
 
     createTransform(img);
     createViewer();
@@ -377,8 +750,22 @@ const Lightense = () => {
   // Exit on excape (esc) key pressed
   function onKeyUp(event) {
     event.preventDefault();
+
     if (event.key === 'Escape' || event.keyCode === 27) {
       removeViewer();
+      return;
+    }
+
+    if (config.keyboard && (event.key === 'ArrowLeft' || event.keyCode === 37)) {
+      showAdjacent(-1);
+      return;
+    }
+
+    if (
+      config.keyboard &&
+      (event.key === 'ArrowRight' || event.keyCode === 39)
+    ) {
+      showAdjacent(1);
     }
   }
 
