@@ -1,17 +1,16 @@
 {
-  "name": "lightense-images",
-  "version": "2.0",
-  "description": "A dependency-free pure JavaScript image zooming library less than 2 KB (gzipped)",
+  "name": "@kaesinol/lightense-images",
+  "version": "2.0.1",
+  "description": "A dependency-free pure JavaScript image zooming library less than 4 KB (gzipped)",
   "main": "dist/lightense.js",
   "scripts": {
     "build": "vite build",
     "test": "pnpm exec eslint src/index.js",
-    "watch": "vite build --watch",
-    "release": "release-it"
+    "watch": "vite build --watch"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sparanoid/lightense-images.git"
+    "url": "git+https://github.com/kaixinol/lightense-images.git"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -23,11 +22,14 @@
     "vite"
   ],
   "author": "Tunghsiao Liu",
+  "contributors": [
+    "kaesinol"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sparanoid/lightense-images/issues"
+    "url": "https://github.com/kaixinol/lightense-images/issues"
   },
-  "homepage": "http://sparanoid.com/work/lightense-images/",
+  "homepage": "https://github.com/kaixinol/lightense-images",
   "browserslist": [
     "not dead",
     "since 2020"
@@ -35,7 +37,6 @@
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "eslint": "^10.0.2",
-    "release-it": "^19.2.4",
     "vite": "^7.1.0"
   },
   "release-it": {
@@ -51,5 +52,15 @@
       "release": true
     }
   },
-  "packageManager": "pnpm@10.28.2"
+  "packageManager": "pnpm@10.28.2",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/lightense.js",
+      "require": "./dist/lightense.js"
+    }
+  }
 }

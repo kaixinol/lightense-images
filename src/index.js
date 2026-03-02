@@ -195,21 +195,43 @@ const Lightense = () => {
     return isNavigableTarget(target);
   }
 
-  function getAdjacentGalleryTarget(direction) {
-    const gallery = config.target.closest('.gallery');
+  function getGroupingContainer() {
+    const explicitGallery = config.target.closest('.gallery');
 
-    if (!gallery) {
+    if (explicitGallery) {
+      return explicitGallery;
+    }
+
+    let current = config.target.parentElement;
+
+    while (current && current !== document.body) {
+      const targets = current.querySelectorAll('.lightense-target');
+
+      if (targets.length > 1 && Array.from(targets).includes(config.target)) {
+        return current;
+      }
+
+      current = current.parentElement;
+    }
+
+    return null;
+  }
+
+  function getAdjacentGroupedTarget(direction) {
+    const group = getGroupingContainer();
+
+    if (!group) {
       return null;
     }
 
-    const galleryTargets = Array.from(gallery.querySelectorAll('.lightense-target'));
-    const currentIndex = galleryTargets.indexOf(config.target);
+    const groupTargets = Array.from(group.querySelectorAll('.lightense-target'));
+    const currentIndex = groupTargets.indexOf(config.target);
 
     if (currentIndex < 0) {
       return null;
     }
 
-    const adjacent = galleryTargets[currentIndex + direction];
+    const adjacent = groupTargets[currentIndex + direction];
 
     if (!adjacent) {
       return null;
@@ -241,7 +263,7 @@ const Lightense = () => {
     }
 
     return (
-      getAdjacentGalleryTarget(direction) || getAdjacentSiblingTarget(direction)
+      getAdjacentGroupedTarget(direction) || getAdjacentSiblingTarget(direction)
     );
   }
 
