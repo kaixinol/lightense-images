@@ -2,7 +2,7 @@
   typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Lightense = factory());
 })(this, (function() {
   "use strict";
-  const lightenseCss = ":root {\n  --lightense-z-index: 999999;\n  --lightense-backdrop: rgba(255, 255, 255, 0.98);\n  --lightense-backdrop-filter: blur(30px);\n  --lightense-duration: 300ms;\n  --lightense-timing-func: cubic-bezier(0.2, 0, 0.1, 1);\n}\n\n.lightense-backdrop {\n  box-sizing: border-box;\n  width: 100%;\n  height: 100%;\n  position: fixed;\n  top: 0;\n  left: 0;\n  overflow: hidden;\n  z-index: calc(var(--lightense-z-index) - 1);\n  padding: 0;\n  margin: 0;\n  transition: opacity var(--lightense-duration) ease;\n  cursor: zoom-out;\n  opacity: 0;\n  background-color: var(--lightense-backdrop);\n  visibility: hidden;\n}\n\n@supports (-webkit-backdrop-filter: blur(30px)) {\n  .lightense-backdrop {\n    background-color: var(--lightense-backdrop);\n    -webkit-backdrop-filter: var(--lightense-backdrop-filter);\n  }\n}\n\n@supports (backdrop-filter: blur(30px)) {\n  .lightense-backdrop {\n    background-color: var(--lightense-backdrop);\n    backdrop-filter: var(--lightense-backdrop-filter);\n  }\n}\n\n.lightense-wrap {\n  position: relative;\n  transition:\n    transform var(--lightense-duration) var(--lightense-timing-func),\n    opacity var(--lightense-duration) ease;\n  z-index: var(--lightense-z-index);\n  pointer-events: none;\n}\n\n.lightense-target {\n  cursor: zoom-in;\n  transition: transform var(--lightense-duration) var(--lightense-timing-func);\n  pointer-events: auto;\n}\n\n.lightense-open {\n  cursor: zoom-out;\n}\n\n.lightense-transitioning {\n  pointer-events: none;\n}\n\n.lightense-nav {\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  width: 44px;\n  height: 44px;\n  border: 0;\n  border-radius: 999px;\n  padding: 0;\n  margin: 0;\n  font-size: 24px;\n  line-height: 44px;\n  text-align: center;\n  color: #fff;\n  background: rgba(0, 0, 0, 0.24);\n  cursor: pointer;\n  user-select: none;\n  opacity: 0;\n  pointer-events: none;\n  transition:\n    opacity var(--lightense-duration) ease,\n    background var(--lightense-duration) ease;\n}\n\n.lightense-nav:hover {\n  background: rgba(0, 0, 0, 0.4);\n}\n\n.lightense-nav-prev {\n  left: 20px;\n}\n\n.lightense-nav-next {\n  right: 20px;\n}\n\n.lightense-nav-visible {\n  opacity: 1;\n  pointer-events: auto;\n}\n";
+  const lightenseCss = ":root {\n  --lightense-z-index: 999999;\n  --lightense-backdrop: rgba(255, 255, 255, 0.98);\n  --lightense-backdrop-filter: blur(30px);\n  --lightense-duration: 300ms;\n  --lightense-timing-func: cubic-bezier(0.2, 0, 0.1, 1);\n  --lightense-nav-size: 44px;\n  --lightense-nav-font-size: 24px;\n  --lightense-nav-side-offset: 20px;\n}\n\n.lightense-backdrop {\n  box-sizing: border-box;\n  width: 100%;\n  height: 100%;\n  position: fixed;\n  top: 0;\n  left: 0;\n  overflow: hidden;\n  z-index: calc(var(--lightense-z-index) - 1);\n  padding: 0;\n  margin: 0;\n  transition: opacity var(--lightense-duration) ease;\n  cursor: zoom-out;\n  opacity: 0;\n  background-color: var(--lightense-backdrop);\n  visibility: hidden;\n}\n\n@supports (-webkit-backdrop-filter: blur(30px)) {\n  .lightense-backdrop {\n    background-color: var(--lightense-backdrop);\n    -webkit-backdrop-filter: var(--lightense-backdrop-filter);\n  }\n}\n\n@supports (backdrop-filter: blur(30px)) {\n  .lightense-backdrop {\n    background-color: var(--lightense-backdrop);\n    backdrop-filter: var(--lightense-backdrop-filter);\n  }\n}\n\n.lightense-wrap {\n  position: relative;\n  transition:\n    transform var(--lightense-duration) var(--lightense-timing-func),\n    opacity var(--lightense-duration) ease;\n  z-index: var(--lightense-z-index);\n  pointer-events: none;\n}\n\n.lightense-target {\n  cursor: zoom-in;\n  transition: transform var(--lightense-duration) var(--lightense-timing-func);\n  pointer-events: auto;\n}\n\n.lightense-open {\n  cursor: zoom-out;\n}\n\n.lightense-transitioning {\n  pointer-events: none;\n}\n\n.lightense-nav {\n  position: fixed;\n  top: 50%;\n  transform: translateY(-50%);\n  width: var(--lightense-nav-size);\n  height: var(--lightense-nav-size);\n  border: 0;\n  border-radius: 999px;\n  padding: 0;\n  margin: 0;\n  font-size: var(--lightense-nav-font-size);\n  line-height: var(--lightense-nav-size);\n  text-align: center;\n  color: #fff;\n  background: rgba(0, 0, 0, 0.24);\n  cursor: pointer;\n  user-select: none;\n  z-index: calc(var(--lightense-z-index) + 1);\n  touch-action: manipulation;\n  -webkit-tap-highlight-color: transparent;\n  opacity: 0;\n  pointer-events: none;\n  transition:\n    opacity var(--lightense-duration) ease,\n    background var(--lightense-duration) ease;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .lightense-nav:hover {\n    background: rgba(0, 0, 0, 0.4);\n  }\n}\n\n.lightense-nav-prev {\n  left: calc(var(--lightense-nav-side-offset) + env(safe-area-inset-left, 0px));\n}\n\n.lightense-nav-next {\n  right: calc(var(--lightense-nav-side-offset) + env(safe-area-inset-right, 0px));\n}\n\n.lightense-nav-visible {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n@media (hover: none), (pointer: coarse), (max-width: 768px) {\n  .lightense-nav {\n    top: auto;\n    bottom: calc(12px + env(safe-area-inset-bottom, 0px));\n    transform: none;\n    width: 52px;\n    height: 52px;\n    font-size: 28px;\n    line-height: 52px;\n    background: rgba(0, 0, 0, 0.5);\n  }\n\n  .lightense-nav-prev {\n    left: calc(12px + env(safe-area-inset-left, 0px));\n  }\n\n  .lightense-nav-next {\n    right: calc(12px + env(safe-area-inset-right, 0px));\n  }\n}\n";
   const Lightense = () => {
     const defaults = {
       time: 300,
@@ -21,6 +21,9 @@
       /* eslint-enable no-undefined  */
     };
     let config = {};
+    let touchStartX = null;
+    let touchStartY = null;
+    let touchStartAt = null;
     function invokeCustomHook(methodName) {
       const method = config[methodName];
       if (!method) {
@@ -228,6 +231,11 @@
     function getSwitchTravelX() {
       return Math.max(Math.round(getViewportWidth() * 0.75), 280);
     }
+    function resetTouchState() {
+      touchStartX = null;
+      touchStartY = null;
+      touchStartAt = null;
+    }
     function isNavigableTarget(target) {
       if (!target || !target.src || !target.complete) {
         return false;
@@ -420,6 +428,7 @@
       invokeCustomHook("beforeHide");
       unbindEvents();
       hideNavigationControls();
+      resetTouchState();
       const closingTarget = config.target;
       const closingWrap = config.wrap;
       closingTarget.classList.remove("lightense-open");
@@ -477,11 +486,45 @@
       window.addEventListener("keyup", onKeyUp, false);
       window.addEventListener("scroll", checkViewer, false);
       config.container.addEventListener("click", removeViewer, false);
+      config.container.addEventListener("touchstart", onTouchStart, false);
+      config.container.addEventListener("touchend", onTouchEnd, false);
+      config.container.addEventListener("touchcancel", resetTouchState, false);
     }
     function unbindEvents() {
       window.removeEventListener("keyup", onKeyUp, false);
       window.removeEventListener("scroll", checkViewer, false);
       config.container.removeEventListener("click", removeViewer, false);
+      config.container.removeEventListener("touchstart", onTouchStart, false);
+      config.container.removeEventListener("touchend", onTouchEnd, false);
+      config.container.removeEventListener("touchcancel", resetTouchState, false);
+    }
+    function onTouchStart(event) {
+      if (config.isTransitioning || !event.touches || event.touches.length !== 1) {
+        resetTouchState();
+        return;
+      }
+      const touch = event.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartAt = Date.now();
+    }
+    function onTouchEnd(event) {
+      if (config.isTransitioning || touchStartX === null || touchStartY === null || touchStartAt === null || !event.changedTouches || !event.changedTouches.length) {
+        resetTouchState();
+        return;
+      }
+      const touch = event.changedTouches[0];
+      const elapsed = Date.now() - touchStartAt;
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      resetTouchState();
+      if (elapsed > 500 || absX < 56 || absX < absY * 1.2) {
+        return;
+      }
+      event.preventDefault();
+      showAdjacent(deltaX > 0 ? -1 : 1);
     }
     function onKeyUp(event) {
       event.preventDefault();

@@ -21,6 +21,9 @@ const Lightense = () => {
 
   // Init user options
   let config = {};
+  let touchStartX = null;
+  let touchStartY = null;
+  let touchStartAt = null;
 
   function invokeCustomHook(methodName) {
     const method = config[methodName];
@@ -315,6 +318,12 @@ const Lightense = () => {
     return Math.max(Math.round(getViewportWidth() * 0.75), 280);
   }
 
+  function resetTouchState() {
+    touchStartX = null;
+    touchStartY = null;
+    touchStartAt = null;
+  }
+
   function isNavigableTarget(target) {
     if (!target || !target.src || !target.complete) {
       return false;
@@ -600,6 +609,7 @@ const Lightense = () => {
     invokeCustomHook('beforeHide');
     unbindEvents();
     hideNavigationControls();
+    resetTouchState();
 
     const closingTarget = config.target;
     const closingWrap = config.wrap;
@@ -681,12 +691,60 @@ const Lightense = () => {
     window.addEventListener('keyup', onKeyUp, false);
     window.addEventListener('scroll', checkViewer, false);
     config.container.addEventListener('click', removeViewer, false);
+    config.container.addEventListener('touchstart', onTouchStart, false);
+    config.container.addEventListener('touchend', onTouchEnd, false);
+    config.container.addEventListener('touchcancel', resetTouchState, false);
   }
 
   function unbindEvents() {
     window.removeEventListener('keyup', onKeyUp, false);
     window.removeEventListener('scroll', checkViewer, false);
     config.container.removeEventListener('click', removeViewer, false);
+    config.container.removeEventListener('touchstart', onTouchStart, false);
+    config.container.removeEventListener('touchend', onTouchEnd, false);
+    config.container.removeEventListener('touchcancel', resetTouchState, false);
+  }
+
+  function onTouchStart(event) {
+    if (config.isTransitioning || !event.touches || event.touches.length !== 1) {
+      resetTouchState();
+      return;
+    }
+
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchStartAt = Date.now();
+  }
+
+  function onTouchEnd(event) {
+    if (
+      config.isTransitioning ||
+      touchStartX === null ||
+      touchStartY === null ||
+      touchStartAt === null ||
+      !event.changedTouches ||
+      !event.changedTouches.length
+    ) {
+      resetTouchState();
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const elapsed = Date.now() - touchStartAt;
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    resetTouchState();
+
+    // Horizontal swipe only: ignore slow or mostly vertical gestures.
+    if (elapsed > 500 || absX < 56 || absX < absY * 1.2) {
+      return;
+    }
+
+    event.preventDefault();
+    showAdjacent(deltaX > 0 ? -1 : 1);
   }
 
   // Exit on excape (esc) key pressed

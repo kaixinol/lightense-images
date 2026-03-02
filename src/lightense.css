@@ -4,6 +4,9 @@
   --lightense-backdrop-filter: blur(30px);
   --lightense-duration: 300ms;
   --lightense-timing-func: cubic-bezier(0.2, 0, 0.1, 1);
+  --lightense-nav-size: 44px;
+  --lightense-nav-font-size: 24px;
+  --lightense-nav-side-offset: 20px;
 }
 
 .lightense-backdrop {
@@ -62,22 +65,25 @@
 }
 
 .lightense-nav {
-  position: absolute;
+  position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+  width: var(--lightense-nav-size);
+  height: var(--lightense-nav-size);
   border: 0;
   border-radius: 999px;
   padding: 0;
   margin: 0;
-  font-size: 24px;
-  line-height: 44px;
+  font-size: var(--lightense-nav-font-size);
+  line-height: var(--lightense-nav-size);
   text-align: center;
   color: #fff;
   background: rgba(0, 0, 0, 0.24);
   cursor: pointer;
   user-select: none;
+  z-index: calc(var(--lightense-z-index) + 1);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   opacity: 0;
   pointer-events: none;
   transition:
@@ -85,19 +91,42 @@
     background var(--lightense-duration) ease;
 }
 
-.lightense-nav:hover {
-  background: rgba(0, 0, 0, 0.4);
+@media (hover: hover) and (pointer: fine) {
+  .lightense-nav:hover {
+    background: rgba(0, 0, 0, 0.4);
+  }
 }
 
 .lightense-nav-prev {
-  left: 20px;
+  left: calc(var(--lightense-nav-side-offset) + env(safe-area-inset-left, 0px));
 }
 
 .lightense-nav-next {
-  right: 20px;
+  right: calc(var(--lightense-nav-side-offset) + env(safe-area-inset-right, 0px));
 }
 
 .lightense-nav-visible {
   opacity: 1;
   pointer-events: auto;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .lightense-nav {
+    top: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    width: 52px;
+    height: 52px;
+    font-size: 28px;
+    line-height: 52px;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .lightense-nav-prev {
+    left: calc(12px + env(safe-area-inset-left, 0px));
+  }
+
+  .lightense-nav-next {
+    right: calc(12px + env(safe-area-inset-right, 0px));
+  }
 }
