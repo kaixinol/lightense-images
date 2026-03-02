@@ -1,4 +1,4 @@
-/*! @kaesinol/lightense-images v2.0.2 | © Tunghsiao Liu | MIT */
+/*! @kaesinol/lightense-images v2.0.4 | © Tunghsiao Liu | MIT */
 (function(global, factory) {
   typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Lightense = factory());
 })(this, (function() {
@@ -131,12 +131,31 @@
       );
       hideNavigationControls();
     }
+    function isControlFocused(control) {
+      const activeElement = document.activeElement;
+      if (!activeElement || !control) {
+        return false;
+      }
+      return activeElement === control || control.contains(activeElement);
+    }
     function setNavigationControlVisible(control, isVisible) {
       if (!control) {
         return;
       }
+      if (!isVisible && isControlFocused(control) && typeof control.blur === "function") {
+        control.blur();
+      }
       control.classList.toggle("lightense-nav-visible", isVisible);
       control.setAttribute("aria-hidden", `${!isVisible}`);
+      if (isVisible) {
+        control.removeAttribute("inert");
+        control.removeAttribute("tabindex");
+        control.removeAttribute("aria-disabled");
+        return;
+      }
+      control.setAttribute("inert", "");
+      control.setAttribute("tabindex", "-1");
+      control.setAttribute("aria-disabled", "true");
     }
     function hideNavigationControls() {
       config.prevTarget = null;

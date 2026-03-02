@@ -166,12 +166,38 @@ const Lightense = () => {
     hideNavigationControls();
   }
 
+  function isControlFocused(control) {
+    const activeElement = document.activeElement;
+
+    if (!activeElement || !control) {
+      return false;
+    }
+
+    return activeElement === control || control.contains(activeElement);
+  }
+
   function setNavigationControlVisible(control, isVisible) {
     if (!control) {
       return;
     }
+
+    if (!isVisible && isControlFocused(control) && typeof control.blur === 'function') {
+      control.blur();
+    }
+
     control.classList.toggle('lightense-nav-visible', isVisible);
     control.setAttribute('aria-hidden', `${!isVisible}`);
+
+    if (isVisible) {
+      control.removeAttribute('inert');
+      control.removeAttribute('tabindex');
+      control.removeAttribute('aria-disabled');
+      return;
+    }
+
+    control.setAttribute('inert', '');
+    control.setAttribute('tabindex', '-1');
+    control.setAttribute('aria-disabled', 'true');
   }
 
   function hideNavigationControls() {

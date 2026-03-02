@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@kaesinol/lightense-images)](https://www.npmjs.com/package/@kaesinol/lightense-images)
 
-A dependency-free pure JavaScript image zooming library less than 4 KB (gzipped). Inspired by [tholman/intense-images](https://github.com/tholman/intense-images).
+A dependency-free pure JavaScript image zooming library less than 5 KB (gzipped). Inspired by [tholman/intense-images](https://github.com/tholman/intense-images).
 
 This library is mainly used by [Almace Scaffolding](https://github.com/sparanoid/almace-scaffolding).
 
