@@ -1,3 +1,4 @@
+/*! @kaesinol/lightense-images v2.0.2 | © Tunghsiao Liu | MIT */
 (function(global, factory) {
   typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Lightense = factory());
 })(this, (function() {
